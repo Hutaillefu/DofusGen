@@ -41,6 +41,8 @@ class MetaController extends AbstractController
 	{
 		$filesVersion = $this->repo->findAll();
 
+		dump('ok');
+
 		foreach ($filesVersion as $fileVersion) {
 			$fileVersion->setCanUpdate($kernel, $params, new Finder());
 		}
