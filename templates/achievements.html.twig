@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Succès{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+{% endblock %}
+
+{% block javascripts_include %}
+    <script type="text/javascript" charset="utf8"
+            src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+{% endblock %}
+
+{% block body %}
+
+    <table id="achievements_table" class="table">
+        <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Catégorie</th>
+            <th>Description</th>
+            <th>Points</th>
+            <th>Niveau</th>
+            <th>Objectifs</th>
+            <th>Récompenses</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for achievement in achievements %}
+            <tr>
+                <td>{{ achievement.name.value }}</td>
+                <td>{{ achievement.category.name.value }}</td>
+                <td>{{ achievement.description.value }}</td>
+                <td>{{ achievement.points }}</td>
+                <td>{{ achievement.level }}</td>
+                <td>
+                    <div>
+                        <ul>
+                            {% for objective in achievement.objectives %}
+                                {% if objective.name is not null %}
+                                    <li>{{ objective.name.value }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <ul>
+                            {% for reward in achievement.rewards %}
+                                    <li>{{ reward.kamasRatio }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function () {
+            $('#achievements_table').DataTable();
+        });
+    </script>
+{% endblock %}

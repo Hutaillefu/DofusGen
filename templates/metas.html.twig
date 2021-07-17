@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des fichiers META{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+{% endblock %}
+
+{% block javascripts_include %}
+    <script type="text/javascript" charset="utf8"
+            src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+
+        <div style="margin-top: 27px" class="d-flex flex-row-reverse">
+            <a href="{{ path('import_metas') }}" class="btn btn-primary">Mettre à jour les METAs</a>
+        </div>
+
+        <div style="margin-top: 27px">
+            <table id="metas_table" class="table">
+                <thead>
+                <tr>
+                    <th>Nom du fichier</th>
+                    <th>Hash</th>
+                    <th>Date de mise à jour</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for fileVersion in filesVersion %}
+                    <tr>
+                        <td>{{ fileVersion.filename }}</td>
+                        <td>{{ fileVersion.hash }}</td>
+                        <td>{{ fileVersion.updated is null ? '' : fileVersion.updated|date('d/M/Y') }}</td>
+                        <td>
+                            <div>
+                                {% if fileVersion.canUpdate %}
+                                    <a href="{{ path('update_meta', {'id': fileVersion.id}) }}"
+                                       class="btn btn-secondary">Update</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function () {
+            $('#metas_table').DataTable();
+        });
+    </script>
+{% endblock %}
