@@ -19,9 +19,9 @@ class AchievementProgressSteps
 	private $id;
 
 	/**
-	 * @ORM\Column(type="integer")
+	 * @ORM\ManyToOne(targetEntity=AchievementProgress::class)
 	 */
-	private $progressId;
+	private $progress;
 
 	/**
 	 * @ORM\Column(type="integer", name="`score`")
@@ -34,17 +34,17 @@ class AchievementProgressSteps
 	private $isCosmetic;
 
 	/**
-	 * @ORM\Column(type="integer")
+	 * @ORM\ManyToOne(targetEntity=Achievements::class)
 	 */
-	private $achievementId;
+	private $achievement;
 
-	public function __construct(int $id, int $progressId, int $score, bool $isCosmetic, int $achievementId)
+	public function __construct(int $id, AchievementProgress $progress, int $score, bool $isCosmetic, Achievements $achievement = null)
 	{
 		$this->id = $id;
-		$this->progressId = $progressId;
+		$this->progress = $progress;
 		$this->score = $score;
 		$this->isCosmetic = $isCosmetic;
-		$this->achievementId = $achievementId;
+		$this->achievement = $achievement;
 	}
 
 	public function getId(): int
@@ -52,9 +52,9 @@ class AchievementProgressSteps
 		return $this->id;
 	}
 
-	public function getProgressId(): int
+	public function getProgress(): AchievementProgress
 	{
-		return $this->progressId;
+		return $this->progress;
 	}
 
 	public function getScore(): int
@@ -67,9 +67,9 @@ class AchievementProgressSteps
 		return $this->isCosmetic;
 	}
 
-	public function getAchievementId(): int
+	public function getAchievement(): ?Achievements
 	{
-		return $this->achievementId;
+		return $this->achievement;
 	}
 
 }

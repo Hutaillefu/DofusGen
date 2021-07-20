@@ -24,13 +24,14 @@ class MainController extends AbstractController
 	public function main(D2oDecoder $d2o, D2iDecoder $d2i, EntityManagerInterface $em): Response
 	{
 //		$d2o->process("/home/sayl/Documents/ItemTypes.d2o");
-//		$d2o->begin("/home/sayl/Documents/ItemTypes.d2o");
-//		$d2o->initIndexTable();
-//		$d2o->end();
+		$d2o->begin("/home/sayl/Documents/ItemTypes.d2o");
+		$d2o->initIndexTable();
+		dump($d2o->getStructure());
+		$d2o->end();
 //		dump('ok');
 //		$d2i->process("/home/sayl/Documents/i18n_fr.d2i");
 
-		$this->readMeta();
+//		$this->readMeta();
 		return $this->render('main.html.twig');
 	}
 

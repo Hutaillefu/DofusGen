@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+{% endblock %}
+
+{% block javascripts_include %}
+    <script type="text/javascript" charset="utf8"
+            src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+{% endblock %}
+
+
+{% block body %}
+    <div class="container-fluid">
+        {% for classDef in fileVersion.gameDataClassDefinitions %}
+            <div style="margin-top: 27px">
+                <h5><strong>{{ classDef.name }}</strong></h5>
+
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Type</th>
+                        <th>Inner</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% for field in classDef.fields %}
+                        <tr>
+                            <td>{{ field.name }}</td>
+                            <td>{{ field.type }}</td>
+                            <td>
+                                {% if field.innerField is not null %}
+                                    {{ field.innerField.name }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function () {
+            $('.table').DataTable();
+        });
+    </script>
+{% endblock %}

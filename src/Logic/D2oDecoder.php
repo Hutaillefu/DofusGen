@@ -26,6 +26,11 @@ class D2oDecoder implements IDecoder
 		$this->d2i_repo = $d2i_repo;
 	}
 
+	public function getClassDefinitions(): array
+	{
+		return $this->classDefinitions;
+	}
+
 	public function begin(string $filename)
 	{
 		$this->filename = $filename;
@@ -90,66 +95,83 @@ class D2oDecoder implements IDecoder
 		$this->classDefinitions[$classId] = $classDefinition;
 	}
 
-	public function searchById(int $id): array
+	public function searchById(int $id, bool $getStructure = false): array
 	{
 		$objectPointer = $this->objectPointerTable[$id];
 		$this->reader->setPosition($objectPointer);
 
 		$objectClassId = $this->reader->readInt();
-		return $this->getObjectBuilder($objectClassId);
+		return $this->getObjectBuilder($objectClassId, $getStructure);
 	}
 
-	private function getObjectBuilder(int $classId): array
+	private function getObjectBuilder(int $classId, bool $getStructure = false): array
 	{
 		$res = [];
 		$classDefinition = $this->classDefinitions[$classId];
-		$res[$classDefinition->getName()] = $this->getFieldsBuilder($classDefinition);
+		$res[$classDefinition->getName()] = $this->getFieldsBuilder($classDefinition, $getStructure);
 		return $res;
 	}
 
-	private function getFieldsBuilder(GameDataClassDefinition $classDefinition): array
+	private function getFieldsBuilder(GameDataClassDefinition $classDefinition, bool $getStructure = false): array
 	{
 		$res = [];
 		$nbFields = count($classDefinition->getFields());
 		for ($i = 0; $i < $nbFields; $i++) {
 			$fieldName = $classDefinition->getFields()[$i]->getName();
-			$fieldValue = $this->getFieldValue($classDefinition->getFields()[$i]);
+			$fieldValue = $this->getFieldValue($classDefinition->getFields()[$i], $getStructure);
 			$res[$fieldName] = $fieldValue;
 		}
 		return $res;
 	}
 
-	private function getFieldValue(GameDataField $field)
+	private function getFieldValue(GameDataField $field, bool $getStructure)
 	{
 		switch ($field->getType()) {
 			case -1:
-				return $this->reader->readInt();
+				$value = $this->reader->readInt();
+				return $getStructure ? -1 : $value;
 			case -2:
-				return $this->reader->readBool();
+				$value = $this->reader->readBool();
+				return $getStructure ? -2 : $value;
 			case -3:
-				return $this->reader->readUtf8();
+				$value = $this->reader->readUtf8();
+				return $getStructure ? -3 : $value;
 			case -4:
-				return $this->reader->readDouble();
+				$value = $this->reader->readDouble();
+				return $getStructure ? -4 : $value;
 			case -5:
 				$id = $this->reader->readInt();
-				$d2iRecord = $this->d2i_repo->findOneBy(['id' => $id]);
-				return $d2iRecord != null ? $d2iRecord : null;
+				if (!$getStructure) {
+					$d2iRecord = $this->d2i_repo->findOneBy(['id' => $id]);
+					return $d2iRecord != null ? $d2iRecord : null;
+				}
+				return -5;
 			case -6:
-				return $this->reader->readUInt();
+				$value = $this->reader->readUInt();
+				return $getStructure ? -6 : $value;
 			case -99:
 				$vectorLen = $this->reader->readInt();
 				$res = [];
 				for ($i = 0; $i < $vectorLen; $i++) {
-					$res[] = $this->getFieldValue($field->getInnerField());
+					$res[] = $this->getFieldValue($field->getInnerField(), $getStructure);
 				}
 				return $res;
 			default:
 				if ($field->getType() > 0) {
 					$classId = $this->reader->readInt();
-					return $this->getObjectBuilder($classId);
+					return $this->getObjectBuilder($classId, $getStructure);
 				}
 				break;
 		}
+	}
+
+	public function getStructure(): array
+	{
+		dump($this->classDefinitions);
+
+		$id = array_key_first($this->objectPointerTable);
+		return $this->searchById($id, true);
+
 	}
 
 	private function getClassId(int $id): int

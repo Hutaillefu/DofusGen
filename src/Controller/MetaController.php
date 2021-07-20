@@ -5,12 +5,14 @@ namespace App\Controller;
 
 
 use App\Entity\FileVersion;
+use App\Logic\D2oDecoder;
 use App\Repository\D2o\Achievement\AchievementsRepository;
 use App\Repository\FileVersionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
@@ -40,8 +42,6 @@ class MetaController extends AbstractController
 	public function meta(KernelInterface $kernel, ParameterBagInterface $params, AchievementsRepository $repo): Response
 	{
 		$filesVersion = $this->repo->findAll();
-
-		dump('ok');
 
 		foreach ($filesVersion as $fileVersion) {
 			$fileVersion->setCanUpdate($kernel, $params, new Finder());
@@ -75,17 +75,37 @@ class MetaController extends AbstractController
 	/**
 	 * @Route("/import", name="import_metas")
 	 */
-	public function importMetas()
+	public function importMetas(D2oDecoder $d2o): RedirectResponse
 	{
 		$filesVersion = $this->readMeta();
 
 		foreach ($filesVersion as $fileVersion) {
-			if ($this->repo->findOneBy(['filename' => $fileVersion->getFilename()]) == null)
-				$this->em->persist($fileVersion);
+			if ($this->repo->findOneBy(['filename' => $fileVersion->getFilename()]) != null)
+				continue;
+			$filename = $this->params->get('dofus_folder') . $fileVersion->getFilename();
+			$d2o->begin($filename);
+			$d2o->initIndexTable();
+
+			foreach ($d2o->getClassDefinitions() as $classDefinition) {
+				$fileVersion->addGameDataClassDefinitions($classDefinition);
+			}
+
+			$d2o->end();
+			$this->em->persist($fileVersion);
 		}
 		$this->em->flush();
 
 		return $this->redirectToRoute('meta');
+	}
+
+	/**
+	 * @Route("/classes/{id}", name="show_classes")
+	 */
+	public function showClasses(FileVersion $fileVersion): Response
+	{
+		return $this->render('show_meta_classes.html.twig', [
+			'fileVersion' => $fileVersion
+		]);
 	}
 
 	private function readMeta(): array

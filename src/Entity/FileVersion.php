@@ -3,6 +3,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\FileVersionRepository;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -40,13 +42,20 @@ class FileVersion
 	 */
 	private $updated;
 
+	/**
+	 * @ORM\OneToMany(targetEntity=GameDataClassDefinition::class, mappedBy="fileVersion", cascade={"persist"})
+	 */
+	private $gameDataClassDefinitions;
+
 	private $canUpdate;
 
 	public function __construct(string $filename, string $hash)
 	{
 		$this->filename = $filename;
 		$this->hash = $hash;
+		$this->gameDataClassDefinitions = new ArrayCollection();
 	}
+
 
 	public function getFilename(): string
 	{
@@ -93,5 +102,18 @@ class FileVersion
 	{
 		return $this->canUpdate;
 	}
+
+	public function getGameDataClassDefinitions(): Collection
+	{
+		return $this->gameDataClassDefinitions;
+	}
+
+	public function addGameDataClassDefinitions(GameDataClassDefinition $gameDataClassDefinition): self
+	{
+		$this->gameDataClassDefinitions[] = $gameDataClassDefinition;
+		$gameDataClassDefinition->setFileVersion($this);
+		return $this;
+	}
+
 
 }
